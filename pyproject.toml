@@ -25,6 +25,11 @@ celery = "^5.3.6"
 eventlet = "^0.35.1"
 django = "5.0"
 django-celery-beat = "2.1.0"
+asgiref = "^3.7.2"
+asttokens = "^2.4.1"
+cron-descriptor = "^1.4.3"
+flake8 = "^7.0.0"
+pytest = "^8.0.0"
 
 
 [build-system]

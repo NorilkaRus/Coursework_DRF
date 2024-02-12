@@ -7,9 +7,9 @@ from users.views import UserListView, UserCreateView
 app_name = UsersConfig.name
 
 urlpatterns = [
-    path('login/', UserLogin.as_view(), name='login'),
-    path('logout/', UserLogout.as_view(), name='logout'),
-    path('register/', RegisterView.as_view(), name='register'),
+    # path('login/', UserLogin.as_view(), name='login'),
+    # path('logout/', UserLogout.as_view(), name='logout'),
+    # path('register/', RegisterView.as_view(), name='register'),
     path('list/', UserListView.as_view(), name='list'),
     path('create/', UserCreateView.as_view(), name='create'),
 
