@@ -2,11 +2,11 @@ from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
-from tracker.models import *
-from tracker.paginators import *
-from tracker.permissions import *
-from tracker.serializers import *
-from tracker.services import *
+from tracker.models import Habit
+from tracker.paginators import ReflexPagination
+from tracker.permissions import IsOwner
+from tracker.serializers import HabitSerializer
+from tracker.services import check_habits_daily, check_habits_weekly, create_message, create_reminder, delete_reminder, update_reminder
 # Create your views here.
 
 

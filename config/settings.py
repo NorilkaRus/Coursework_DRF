@@ -169,13 +169,13 @@ CORS_ALLOW_ALL_ORIGINS = False
 # Настройки для Celery
 
 # URL-адрес брокера сообщений
-CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"  # Например, Redis, который по умолчанию работает на порту 6379
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
 
 # URL-адрес брокера результатов, также Redis
-CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
 
 # Часовой пояс для работы Celery
-CELERY_TIMEZONE = "Europe/Moscow"
+CELERY_TIMEZONE = os.getenv('CELERY_TIMEZONE')
 
 # Флаг отслеживания выполнения задач
 CELERY_TASK_TRACK_STARTED = True
@@ -186,11 +186,9 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_BEAT_SCHEDULE = {
     'task-name': {
         'task': 'tracker.tasks.send_message_to_bot',  # Путь к задаче
-        'schedule': timedelta(minutes=10),  # Расписание выполнения задачи (например, каждые 10 минут)
+        'schedule': timedelta(minutes=10),
     },
 }
-
-load_dotenv(BASE_DIR / '.env')
 
 EMAIL_HOST = 'smtp.yandex.ru'
 EMAIL_PORT = 465
