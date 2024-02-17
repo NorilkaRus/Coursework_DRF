@@ -1,173 +1,306 @@
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APIClient
 from django.urls import reverse
 from rest_framework import status
 from tracker.models import Habit
-from tracker.models import User
+from users.models import User
 # Create your tests here.
 
-
-class HabitTestCase(APITestCase):
+class HabitListTestCase(APITestCase):
+    """ТестКейсы для тестирования отображения существующих привычек"""
+    maxDiff = None
 
     def setUp(self) -> None:
+        """Предварительное наполнение БД для дальнейших тестов."""
 
-        self.user = User.objects.create(email='norilkarus@gmail.com')
-        self.user.set_password('norilkarus')
-        self.user.save()
+        self.user = User.objects.create(
+            email='user@email.dot',
+            telegram='test_tg_username'
+        )
+
+        self.private_habit = Habit.objects.create(
+            user=self.user,
+            place="Тестовое место",
+            time="12:00",
+            action="Тестовое действие",
+            duration="120",
+            reward="Тестовая награда"
+        )
+
+        self.public_habit = Habit.objects.create(
+            user=self.user,
+            place="Место",
+            time="12:00",
+            action="Действие",
+            duration="120",
+            reward="Награда",
+            is_public=True
+        )
+
+        """Имитация авторизации пользователя по JWT токену."""
+        self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-    def test_create_habit(self):
-        response = self.client.post('/users/token/', {"email": "norilkarus@gmail.com", "password": "norilkarus"})
-        self.access_token = response.json().get("access")
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+    def test_get_habits_list(self):
+        """Тестирование вывода списка существующих привычек"""
 
-        data_habit = {
-            'user': self.user.pk,
-            'action': 'Eat',
-            'nice': True,
-            'periodicity': 'Каждый день',
+        response = self.client.get(reverse('tracker:habit_list'))
+
+        self.assertEqual(
+            response.json(),
+            {
+                'count': 2,
+                'next': None,
+                'previous': None,
+                'results':
+                    [
+                        {
+                            'id': 1,
+                            'user': 6,
+                            'periodicity': 1,
+                            'related_habit': None,
+                            'place': 'Тестовое место',
+                            'time': '12:00:00',
+                            'action': 'Тестовое действие',
+                            'nice': False,
+                            'reward': 'Тестовая награда',
+                            'duration': '00:02:00',
+                            'is_public': False
+                        },
+                    ]
+            }
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+
+    def test_get_public_habits_list(self):
+        """Тестирование вывода списка существующих публичных привычек"""
+
+        response = self.client.get(reverse('tracker:habit_public_list'))
+
+        self.assertEqual(
+            response.json(),
+            {
+                'count': 1,
+                'next': None,
+                'previous': None,
+                'results':
+                    [
+                        {
+                            'id': self.public_habit.id,
+                            'user': 7,
+                            'periodicity': 1,
+                            'related_habit': None,
+                            'place': 'Место',
+                            'time': '12:00:00',
+                            'action': 'Действие',
+                            'nice': False,
+                            'reward': 'Награда',
+                            'duration': '00:02:00',
+                            'is_public': True
+                        }
+                    ]
+            }
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+
+
+class HabitUpdateTestCase(APITestCase):
+    """ТестКейсы для тестирования изменения существующих привычек при вызове PUT/PATCH методов"""
+
+    def setUp(self) -> None:
+        """Предварительное наполнение БД для дальнейших тестов."""
+
+        self.user = User.objects.create(
+            email='user@email.dot',
+            telegram='test_tg_username'
+        )
+
+        self.habit = Habit.objects.create(
+            user=self.user,
+            place="Тестовое место",
+            time="12:00",
+            action="Тестовое действие",
+            duration="120",
+            is_public=True
+        )
+
+        """Имитация авторизации пользователя по JWT токену."""
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def test_patch_habit(self):
+        """Тестирование обновления полей экземпляра класса 'Habit' при вызове PATCH запроса"""
+
+        changed_data = {
+            "place": "Новое измененное место",
+            "action": "Новое измененное действие",
+            "reward": "Новая тестовая награда"
+        }
+
+        response = self.client.patch(f'/habits/update/{self.habit.id}/', data=changed_data)
+        self.maxDiff = None
+
+        self.assertEqual(
+            response.json(),
+            {
+                "id": self.habit.id,
+                "user": "user@email.dot",
+                "related_habit": None,
+                "place": "Новое измененное место",
+                "time": "12:00:00",
+                "action": "Новое измененное действие",
+                "is_pleasure": False,
+                "periodicity": 1,
+                "duration": "00:02:00",
+                "is_public": True,
+                "reward": "Новая тестовая награда"
+            }
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+
+class HabitFailedCreateTestCase(APITestCase):
+    """ТестКейсы для тестирования ситуаций, при которых возникают ошибки создания привычки"""
+
+    def setUp(self) -> None:
+        """Предварительное наполнение БД для дальнейших тестов."""
+
+        self.user = User.objects.create(
+            email='user@email.dot',
+            telegram='test_tg_username'
+        )
+
+        """Имитация авторизации пользователя по JWT токену."""
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def test_create_habit_with_pleasure_flag(self):
+        """Тестирование создания привычки с положительным флагом 'is_pleasure' """
+
+        main_habit_data = {
+            "place": "Тестовое место",
+            "time": "12:00",
+            "action": "Тестовое действие",
+            "duration": "120",
+            "is_pleasure": True
         }
 
         response = self.client.post(
-            '/habits/habit_create/',
-            data=data_habit
+            reverse('tracker:habit_create'),
+            data=main_habit_data,
         )
 
-        self.assertEquals(
+        self.assertEqual(
             response.status_code,
-            status.HTTP_201_CREATED
+            status.HTTP_400_BAD_REQUEST
         )
 
-        self.assertEquals(
-            response.json(),
-            {'id': 2, 'user': 2, 'place': None, 'time': None,
-             'action': 'Eat', 'nice': True, 'periodicity': 'Каждый день', 'duration': '00:02:00',
-             'is_public': False, 'related_habit': None, 'reward': None}
-        )
+    def test_required_fields_habit(self):
+        """Тестирование создание привычки без указания обязательных полей ('related_habit' / 'reward') """
 
-        self.assertTrue(
-            Habit.objects.all().exists()
-        )
-
-    def test_list_habit(self):
-
-        self.maxDiff = None
-
-        response = self.client.post('/users/token/', {"email": "norilkarus@gmail.com", "password": "norilkarus"})
-        self.access_token = response.json().get("access")
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
-
-        Habit.objects.create(
-            user=self.user,
-            action='Eat',
-            nice=True,
-            periodicity='Каждый день',
-        )
-
-        response = self.client.get(
-            '/habits/'
-        )
-
-        self.assertEquals(
-            response.status_code,
-            status.HTTP_200_OK
-        )
-
-        self.assertEquals(
-            response.json(),
-            {'count': 1, 'next': None, 'previous': None,
-             'results': [{'id': 5, 'user': 5,
-                          'place': None,
-                          'time': None, 'action': 'Eat',
-                          'nice': True,
-                          'periodicity': 'Каждый день',
-                          'duration': '00:02:00',
-                          'is_public': True, 'related_habit': None,
-                          'reward': None}]}
-        )
-
-    def test_detail_habit(self):
-
-        response = self.client.post('/users/token/', {"email": "norilkarus@gmail.com", "password": "norilkarus"})
-        self.access_token = response.json().get("access")
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
-
-        habit = Habit.objects.create(
-            user=self.user,
-            action='Eat',
-            nice=True,
-            periodicity='Каждый день'
-        )
-
-        response = self.client.get(
-            reverse('habits:habit_detail', kwargs={'pk': habit.pk})
-        )
-
-        self.assertEquals(
-            response.status_code,
-            status.HTTP_200_OK
-        )
-
-        self.assertEquals(
-            response.json(),
-            {'id': 4, 'user': 4, 'place': None, 'time': None,
-             'action': 'Eat', 'nice': True, 'periodicity': 'Каждый день', 'duration': '00:02:00',
-             'is_public': True, 'related_habit': None, 'reward': None}
-        )
-
-    def test_change_habit(self):
-
-        response = self.client.post('/users/token/', {"email": "norilkarus@gmail.com", "password": "norilkarus"})
-        self.access_token = response.json().get("access")
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
-
-        habit = Habit.objects.create(
-            user=self.user,
-            action='Eat',
-            nice=True,
-            periodicity='Каждый день'
-        )
-
-        data_habit_change = {
-            'name': 'Test_1',
+        main_habit_data = {
+            "place": "Тестовое место",
+            "time": "12:00",
+            "action": "Тестовое действие",
+            "duration": "120",
         }
 
-        response = self.client.patch(
-            reverse('habits:habit_change', kwargs={'pk': habit.pk}),
-            data=data_habit_change
+        response = self.client.post(
+            reverse('tracker:habit_create'),
+            data=main_habit_data,
         )
 
-        self.assertEquals(
+        self.assertEqual(
             response.status_code,
-            status.HTTP_200_OK
+            status.HTTP_400_BAD_REQUEST
         )
 
-        self.assertEquals(
-            response.json(),
-            {'id': 1, 'user': 1, 'place': None, 'time': None,
-             'action': 'Eat', 'nice': True, 'periodicity': 'Каждый день', 'duration': '00:02:00',
-             'is_public': True, 'related_habit': None, 'reward': None}
+    def test_overflow_field_habit(self):
+        """Тестирование создания привычки при одновременном указании награды и связанной привычки"""
+
+        related_habit_data = {
+            "place": "Тестовое место связанной привычки",
+            "time": "12:00",
+            "action": "Тестовое действие связанной привычки",
+            "duration": "120",
+        }
+
+        main_habit_data = {
+            "place": "Тестовое место",
+            "time": "12:00",
+            "action": "Тестовое действие",
+            "duration": "120",
+            "related_habit": related_habit_data,
+            "reward": "Тестовая награда"
+        }
+
+        response = self.client.post(
+            reverse('tracker:habit_create'),
+            data=main_habit_data,
+            format='json'
         )
 
-    def test_delete_habit(self):
-
-        response = self.client.post('/users/token/', {"email": "norilkarus@gmail.com", "password": "norilkarus"})
-        self.access_token = response.json().get("access")
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
-
-        habit = Habit.objects.create(
-            user=self.user,
-            action='Eat',
-            nice=True,
-            periodicity='Каждый день'
-        )
-
-        # получаем детали привычки
-        response = self.client.delete(
-            reverse('habits:habit_delete', kwargs={'pk': habit.pk})
-        )
-
-        # проверяем ответ на получение привычки
-        self.assertEquals(
+        self.assertEqual(
             response.status_code,
-            status.HTTP_204_NO_CONTENT
+            status.HTTP_400_BAD_REQUEST
+        )
+
+    def test_execution_time_habit(self):
+        """Тестирование создания привычки с указанием времени исполнения, превышающим 120 секунд"""
+
+        main_habit_data = {
+            "place": "Тестовое место",
+            "time": "12:00",
+            "action": "Тестовое действие",
+            "duration": "130",
+            "is_public": True,
+        }
+
+        response = self.client.post(
+            reverse('tracker:habit_create'),
+            data=main_habit_data
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+
+    def test_execution_time_related_habit(self):
+        """Тестирование создания привычки с указанием времени исполнения связанной привычки, превышающим 120 секунд"""
+
+        related_habit_data = {
+            "place": "Тестовое место связанной привычки",
+            "time": "12:00",
+            "action": "Тестовое действие связанной привычки",
+            "duration": "130",
+        }
+
+        main_habit_data = {
+            "place": "Тестовое место",
+            "time": "12:00",
+            "action": "Тестовое действие",
+            "duration": "120",
+            "related_habit": related_habit_data,
+        }
+
+        response = self.client.post(
+            reverse('tracker:habit_create'),
+            data=main_habit_data,
+            format='json'
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
         )

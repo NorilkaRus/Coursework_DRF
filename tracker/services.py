@@ -52,12 +52,8 @@ def create_message(habit_id):
     message = f'''Привет {user}! {time} в {place} необходимо выполнять {action} в течение {duration} !'''
 
     response = send_message_to_bot(habit.telegram, message)
-    if habit.connected_habit:
-        nice_id = habit.connected_habit.id
-        nice = Habit.objects.get(id=nice_id)
-        nice_time = nice.duration.total_seconds()
+    if habit.related_habit:
         message = f'''{habit.user}, молодец! Ты выполнил {habit.action} и получаешь награду: {habit.reward}'''
-
         time.sleep(10)
         nice_response = send_message_to_bot(habit.telegram, message)
         return HttpResponse(nice_response)

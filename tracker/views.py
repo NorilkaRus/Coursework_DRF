@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
@@ -6,7 +5,7 @@ from tracker.models import Habit
 from tracker.paginators import ReflexPagination
 from tracker.permissions import IsOwner
 from tracker.serializers import HabitSerializer
-from tracker.services import check_habits_daily, check_habits_weekly, create_message, create_reminder, delete_reminder, update_reminder
+from tracker.services import create_reminder, delete_reminder, update_reminder
 # Create your views here.
 
 
@@ -50,7 +49,7 @@ class HabitPublicListAPIView(generics.ListAPIView):
     def get_queryset(self):
         """ Определяем параметры вывода объектов """
 
-        queryset = Habit.objects.filter(habit_is_public=True)
+        queryset = Habit.objects.filter(is_public=True)
         return queryset
 
 

@@ -1,11 +1,8 @@
-from django.shortcuts import render
-from rest_framework import generics
+from rest_framework import generics, status
 from users.serializers import UserListSerializer, UserCreateSerializer
 from users.models import User
 from django.contrib.auth.views import LoginView, LogoutView
-from django.contrib.auth import login
-from django.views.generic import CreateView, UpdateView, TemplateView, View
-from django.urls import reverse_lazy, reverse
+from rest_framework.response import Response
 # Create your views here.
 
 

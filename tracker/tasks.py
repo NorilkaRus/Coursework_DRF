@@ -1,6 +1,5 @@
 import requests
 from celery import shared_task
-from django.conf import settings
 from config.settings import TELEGRAM_CHAT_ID, TELEGRAM_BOT_API_KEY
 from tracker.models import Habit
 
@@ -14,10 +13,10 @@ send_message_url = f'https://api.telegram.org/bot{bot_token}/sendMessage'
 def send_message_to_bot(habit_id):
     habit = Habit.objects.get(id=habit_id)
     requests.get(
-        url=f'https://api.telegram.org/bot{settings.TELEGRAM_BOT_API_KEY}/sendMessage',
+        url=send_message_url,
         params={
-            'chat_id': habit.user.telegram_id,
-            'text': f'''Привет {habit.user}! 
+            'chat_id': habit.user.telegram,
+            'text': f'''Привет {habit.user}!
 {habit.time} в {habit.place} необходимо выполнять {habit.action} в течение {habit.duration} !'''
         }
     )
