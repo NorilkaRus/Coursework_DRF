@@ -32,7 +32,7 @@ def check_habits_weekly():
     time_now = date_now.time()
 
     habits = Habit.objects.filter(time__hour=time_now.hour, time__minute=time_now.minute,
-                                  period='Каждая неделя', nice=False)
+                                  periodicity='Каждая неделя', nice=False)
 
     for habit in habits:
         create_message(habit.id)
@@ -67,7 +67,7 @@ def create_reminder(habit):
     crontab_schedule, _ = CrontabSchedule.objects.get_or_create(
         minute=habit.time.minute,
         hour=habit.time.hour,
-        day_of_week='*' if habit.period == 'Каждый день' else 'Каждая неделя',
+        day_of_week='*' if habit.periodicity == 'Каждый день' else 'Каждая неделя',
         month_of_year='*',
         timezone=settings.TIME_ZONE
     )
@@ -75,7 +75,7 @@ def create_reminder(habit):
     PeriodicTask.objects.create(
         crontab=crontab_schedule,
         name=f'Habit Task - {habit.action}',
-        task='habits.tasks.send_message_to_bot',
+        task='tracker.tasks.send_message_to_bot',
         args=[habit.id],
     )
 
