@@ -15,7 +15,7 @@ def send_message_to_bot(habit_id):
         url=send_message_url,
         params={
             'chat_id': habit.user.telegram,
-            'text': f'''Привет {habit.user}!
+            'text': f'''Привет!
                 {habit.time} в {habit.place} необходимо выполнять {habit.action} в течение {habit.duration} !'''
         }
     )

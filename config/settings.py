@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -183,12 +184,12 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
-# CELERY_BEAT_SCHEDULE = {
-#     'task-name': {
-#         'task': 'tracker.tasks.send_message_to_bot',  # Путь к задаче
-#         'schedule': timedelta(minutes=10),
-#     },
-# }
+CELERY_BEAT_SCHEDULE = {
+    'task-name': {
+        'task': 'tracker.tasks.send_message_to_bot',  # Путь к задаче
+        'schedule': timedelta(minutes=1),
+    },
+}
 
 EMAIL_HOST = 'smtp.yandex.ru'
 EMAIL_PORT = 465
