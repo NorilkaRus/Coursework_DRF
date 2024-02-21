@@ -19,5 +19,3 @@ def send_message_to_bot(habit_id):
                 {habit.time} в {habit.place} необходимо выполнять {habit.action} в течение {habit.duration} !'''
         }
     )
-
-
