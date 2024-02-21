@@ -185,7 +185,7 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 CELERY_BEAT_SCHEDULE = {
-    'task-name': {
+    'send_message_to_bot': {
         'task': 'tracker.tasks.send_message_to_bot',  # Путь к задаче
         'schedule': timedelta(minutes=1),
     },

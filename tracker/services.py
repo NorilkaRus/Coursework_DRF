@@ -67,7 +67,7 @@ def create_reminder(habit):
     crontab_schedule, _ = CrontabSchedule.objects.get_or_create(
         minute=habit.time.minute,
         hour=habit.time.hour,
-        day_of_week='*' if habit.periodicity == 'Каждый день' else 'Каждая неделя',
+        day_of_week='*' if habit.periodicity == 1 else 2,
         month_of_year='*',
         timezone=settings.TIME_ZONE
     )
