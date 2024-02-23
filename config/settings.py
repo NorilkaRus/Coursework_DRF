@@ -15,6 +15,7 @@ import os
 from dotenv import load_dotenv
 from datetime import timedelta
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
@@ -190,6 +191,8 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': timedelta(minutes=1),
     },
 }
+
+DJANGO_CELERY_BEAT_TZ_AWARE = False
 
 EMAIL_HOST = 'smtp.yandex.ru'
 EMAIL_PORT = 465

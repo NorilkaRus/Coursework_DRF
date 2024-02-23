@@ -30,6 +30,7 @@ asttokens = "^2.4.1"
 cron-descriptor = "^1.4.3"
 flake8 = "^7.0.0"
 pytest = "^8.0.0"
+pytz = "^2024.1"
 
 
 [build-system]

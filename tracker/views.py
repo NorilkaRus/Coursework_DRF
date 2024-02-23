@@ -5,7 +5,7 @@ from tracker.models import Habit
 from tracker.paginators import ReflexPagination
 from tracker.permissions import IsOwner
 from tracker.serializers import HabitSerializer
-from tracker.services import create_reminder, delete_reminder, update_reminder
+from tracker.services import create_habit_schedule
 # Create your views here.
 
 
@@ -20,7 +20,7 @@ class HabitCreateAPIView(generics.CreateAPIView):
 
         new_habit = serializer.save()
         new_habit.user = self.request.user
-        create_reminder(new_habit)
+        create_habit_schedule(new_habit)
         new_habit.save()
 
 
@@ -68,20 +68,9 @@ class HabitUpdateAPIView(generics.UpdateAPIView):
     queryset = Habit.objects.all()
     permission_classes = [IsAuthenticated, IsOwner]
 
-    def perform_update(self, serializer):
-
-        habit = serializer.save()
-        update_reminder(habit)
-        habit.save()
-
 
 class HabitDestroyAPIView(generics.DestroyAPIView):
     """ Удаление привычки """
 
     queryset = Habit.objects.all()
     permission_classes = [IsAuthenticated, IsOwner]
-
-    def perform_destroy(self, instance):
-
-        delete_reminder(instance)
-        instance.delete()

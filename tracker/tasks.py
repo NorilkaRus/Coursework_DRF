@@ -10,12 +10,14 @@ send_message_url = f'https://api.telegram.org/bot{bot_token}/sendMessage'
 
 
 @shared_task
-def send_message_to_bot(habit_id):
+def send_telegram_message(habit_id):
+    """Send message"""
+    habit = Habit.objects.get(id=habit_id)
     requests.get(
-        url=send_message_url,
+        url=f'https://api.telegram.org/bot{bot_token}/sendMessage',
         params={
             'chat_id': habit.user.telegram,
             'text': f'''Привет!
-                {habit.time} в {habit.place} необходимо выполнять {habit.action} в течение {habit.duration} !'''
+                    {habit.time} в {habit.place} необходимо выполнять {habit.action} в течение {habit.duration} !'''
         }
     )

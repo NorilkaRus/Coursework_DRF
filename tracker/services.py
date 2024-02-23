@@ -1,11 +1,10 @@
 from django_celery_beat.models import CrontabSchedule
-from config import settings
 from django.http import HttpResponse
 from django_celery_beat.models import PeriodicTask
 from datetime import datetime
 import pytz
 from tracker.models import Habit
-from tracker.tasks import send_message_to_bot
+from tracker.tasks import send_telegram_message
 
 
 def check_habits_daily():
@@ -51,44 +50,42 @@ def create_message(habit_id):
 
     message = f'''Привет {user}! {time} в {place} необходимо выполнять {action} в течение {duration} !'''
 
-    response = send_message_to_bot(habit.telegram, message)
+    response = send_telegram_message(habit.telegram, message)
     if habit.related_habit:
         message = f'''{habit.user}, молодец! Ты выполнил {habit.action} и получаешь награду: {habit.reward}'''
         time.sleep(10)
-        nice_response = send_message_to_bot(habit.telegram, message)
+        nice_response = send_telegram_message(habit.telegram, message)
         return HttpResponse(nice_response)
 
     return HttpResponse(response)
 
 
-def create_reminder(habit):
-    """ Создание расписания и задачи """
-
+def create_habit_schedule(habit):
+    """Создание периодичности и задачи на отправку"""
     crontab_schedule, _ = CrontabSchedule.objects.get_or_create(
         minute=habit.time.minute,
         hour=habit.time.hour,
-        day_of_week='*' if habit.periodicity == 1 else 2,
+        day_of_month='*',
         month_of_year='*',
-        timezone=settings.TIME_ZONE
+        day_of_week='*',
+        timezone='Europe/Moscow'
     )
 
     PeriodicTask.objects.create(
         crontab=crontab_schedule,
-        name=f'Habit Task - {habit.action}',
-        task='tracker.tasks.send_message_to_bot',
+        name=f'Habit Task - {habit.place}',
+        task='tracker.tasks.send_telegram_message',
         args=[habit.id],
     )
 
+    def delete_reminder(habit):
+        """ Удаление задачи """
 
-def delete_reminder(habit):
-    """ Удаление задачи """
+        task_name = f'send_message_to_bot_{habit.id}'
+        PeriodicTask.objects.filter(name=task_name).delete()
 
-    task_name = f'send_message_to_bot_{habit.id}'
-    PeriodicTask.objects.filter(name=task_name).delete()
+    def update_reminder(habit):
+        """ Обновление задачи """
 
-
-def update_reminder(habit):
-    """ Обновление задачи """
-
-    delete_reminder(habit)
-    create_reminder(habit)
+        delete_reminder(habit)
+        create_habit_schedule(habit)
