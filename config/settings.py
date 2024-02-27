@@ -123,7 +123,7 @@ TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
@@ -193,6 +193,8 @@ CELERY_BEAT_SCHEDULE = {
 }
 
 DJANGO_CELERY_BEAT_TZ_AWARE = False
+#
+CELERY_ENABLE_UTC = True
 
 EMAIL_HOST = 'smtp.yandex.ru'
 EMAIL_PORT = 465
