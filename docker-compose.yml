@@ -20,18 +20,19 @@ services:
     image: redis
     ports:
       - '6379:6379'
-    celery:
-      build: .
-      tty: true
-      command: celery -A config worker -l INFO
-      depends_on:
-        - redis
-        - app
 
-    celery_beat:
-      build: .
-      tty: true
-      command: celery -A config beat -l info -S django
-      depends_on:
-        - redis
-        - app
+  celery:
+    build: .
+    tty: true
+    command: celery -A config worker -l INFO
+    depends_on:
+      - redis
+      - web
+
+  celery_beat:
+    build: .
+    tty: true
+    command: celery -A config beat -l info -S django
+    depends_on:
+      - redis
+      - web
